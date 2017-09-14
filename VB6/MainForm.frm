@@ -54,3 +54,9 @@ Set client = New RabbitClient
 
 
 End Sub
+
+Private Sub Form_Terminate()
+Dim result
+result = client.Dispose()
+End Sub
+
