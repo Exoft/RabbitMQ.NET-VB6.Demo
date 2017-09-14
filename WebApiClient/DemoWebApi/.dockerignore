@@ -1,0 +1,4 @@
+*
+
+!obj/Docker/empty/
+!bin/Release/PublishOutput/*
