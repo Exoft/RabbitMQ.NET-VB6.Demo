@@ -1,6 +1,6 @@
 Type=Exe
-Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#..\..\..\..\..\Windows\SysWOW64\stdole2.tlb#OLE Automation
-Reference=*\G{FB68464B-78AD-4835-B6D2-D2E19C4B04AE}#1.0#0#..\VB6ComLib\VB6ComLib\VB6ComLib\bin\Debug\VB6ComLib.tlb#VB6ComLib
+Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#..\..\..\..\..\..\Windows\SysWOW64\stdole2.tlb#OLE Automation
+Reference=*\G{FB68464B-78AD-4835-B6D2-D2E19C4B04AE}#1.0#0#..\VB6ComLib\VB6ComLib\bin\Debug\VB6ComLib.tlb#VB6ComLib
 Form=MainForm.frm
 Startup="MainForm"
 HelpFile=""

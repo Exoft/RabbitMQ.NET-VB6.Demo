@@ -18,7 +18,7 @@ class Send
 
 
 
-            for (int i = 0; i < 100000; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 string message = "Hello World! + " + i;
                 var body = Encoding.UTF8.GetBytes(message);
