@@ -44,7 +44,7 @@ End Sub
 
 Private Sub Command1_Click()
 Dim result
-result = client.Initialize("localhost", "hello")
+result = client.Initialize("13.65.87.69", "hello")
 End Sub
 
 Private Sub Form_Load()
