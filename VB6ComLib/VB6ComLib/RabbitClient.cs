@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Caching;
 using System.Runtime.InteropServices;
 using System.Text;
 using RabbitMQ.Client;
@@ -10,13 +11,16 @@ namespace VB6ComLib
 
     [InterfaceType(ComInterfaceType.InterfaceIsIDispatch)]
     [Guid("2129D829-81C3-48E5-97F8-57AF64ABADF1")]
-    public interface IRabbitClient:IDisposable
+    public interface IRabbitClient : IDisposable
     {
         [DispId(1)]
-        string Initialize(string hostName, string queueName);
+        string Initialize(string hostName, string queueName, int expirationTimeSeconds = 20);
 
         [DispId(2)]
         void MessageReceived(MessageEventArgs e);
+
+        [DispId(3)]
+        string Reply(string correlationId, string response);
     }
 
     [Guid("8AF98AD8-30D0-4161-AECC-92D495F17745")]
@@ -24,12 +28,13 @@ namespace VB6ComLib
     [ComVisible(true)]
     public class RabbitClient : IDisposable
     {
+        private readonly MemoryCache _cache = new MemoryCache("RabbitClientCache");
         private IModel _channel;
         private IConnection _connection;
 
         public event MessageReceivedHandler MessageReceived;
 
-        public string Initialize(string hostName, string queueName)
+        public string Initialize(string hostName, string queueName, int expirationTimeSeconds = 20)
         {
             var result = "OK";
             try
@@ -38,7 +43,7 @@ namespace VB6ComLib
                 _connection = factory.CreateConnection();
                 _channel = _connection.CreateModel();
                 _channel.QueueDeclare(queueName,
-                    true,
+                    false,
                     false,
                     false,
                     null);
@@ -48,7 +53,20 @@ namespace VB6ComLib
                 {
                     var body = ea.Body;
                     var message = Encoding.UTF8.GetString(body);
-                    MessageReceived?.Invoke(new MessageEventArgs {Message = message});
+                    var props = ea.BasicProperties;
+
+                    _cache.Add(props.CorrelationId,
+                        new ReplyToInfo {DeliveryTag = ea.DeliveryTag, ReplyTo = props.ReplyTo},
+                        new CacheItemPolicy {AbsoluteExpiration = DateTime.UtcNow.AddSeconds(expirationTimeSeconds)});
+
+                    //Check
+                    //_channel.BasicAck(ea.DeliveryTag, false);
+
+                    MessageReceived?.Invoke(
+                        new MessageEventArgs(props.CorrelationId)
+                        {
+                            Message = message
+                        });
                 };
                 _channel.BasicConsume(queueName,
                     true,
@@ -60,6 +78,36 @@ namespace VB6ComLib
             }
 
             return result;
+        }
+
+        public string Reply(string correlationId, string response)
+        {
+            try
+            {
+                if (!_cache.Contains(correlationId))
+                    return "Correlation ID does not exists or expiered";
+
+                var replyToInfo = (ReplyToInfo) _cache.Get(correlationId);
+
+                var replyProps = _channel.CreateBasicProperties();
+                replyProps.CorrelationId = correlationId;
+
+                var responseBytes = Encoding.UTF8.GetBytes(response);
+                _channel.BasicPublish("", replyToInfo.ReplyTo, replyProps, responseBytes);
+
+                return "OK";
+            }
+            catch (Exception exception)
+            {
+                return exception.Message;
+            }
+        }
+
+
+        private class ReplyToInfo
+        {
+            public string ReplyTo { get; set; }
+            public ulong DeliveryTag { get; set; }
         }
 
         #region IDisposable Support
@@ -77,7 +125,7 @@ namespace VB6ComLib
 
                 _connection?.Dispose();
                 _channel?.Dispose();
-                
+
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
 
@@ -109,6 +157,17 @@ namespace VB6ComLib
     [ComVisible(true)]
     public class MessageEventArgs : EventArgs
     {
+        public MessageEventArgs()
+        {
+        }
+
+        public MessageEventArgs(string correlationId)
+        {
+            CorrelationId = correlationId;
+        }
+
+        public string CorrelationId { get; }
+
         public string Message { set; get; }
     }
 }

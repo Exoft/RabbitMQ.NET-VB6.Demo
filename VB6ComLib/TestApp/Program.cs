@@ -12,7 +12,7 @@ namespace TestApp
         {
             var client = new RabbitClient();
             client.MessageReceived += ClientOnMessageReceived;
-            client.Initialize("localhost", "hello");
+            client.Initialize("13.65.87.69", "hello");
 
 
 
@@ -24,6 +24,7 @@ namespace TestApp
         private static void ClientOnMessageReceived(MessageEventArgs messageEventArgs)
         {
             Console.WriteLine(messageEventArgs.Message);
+            //messageEventArgs.Reply("SuperDone");
         }
     }
 }
