@@ -85,7 +85,7 @@ namespace VB6ComLib
             try
             {
                 if (!_cache.Contains(correlationId))
-                    return "Correlation ID does not exists or expiered";
+                    return "Correlation ID does not exists or expired";
 
                 var replyToInfo = (ReplyToInfo) _cache.Get(correlationId);
 
