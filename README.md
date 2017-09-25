@@ -1,9 +1,9 @@
-# RabbitMQ.NET-VB6.Demo
-RabbitMQ .net 4 + VB6 Sample client 
+# RabbitMQ VB6 Client
+RabbitMQ .net 4 + VB6 Simple client 
 
 ### Installation
 
-Docker is required to install RabbitMQ
+Docker is required to install RabbitMQ, skip this if RabbitMQ is already installed
 
 ```sh
 docker run -d -p 5672:5672 -p 8080:15672 --hostname my-rabbit --name rabbit rabbitmq:3-management
